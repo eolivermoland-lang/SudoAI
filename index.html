@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SudoAI - Intelligent AI Assistant</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- PayPal SDK -->
+    <script src="https://www.paypal.com/sdk/js?client-id=ATTduLsIfc1QrNzifEo8HWlBBE-dACHhiPCScWNBpmMckzzUie4EMgXaS1mB_H1-Ttcsny8pzXFlnzvV&currency=USD"></script>
+</head>
+<body>
+
+    <!-- ========== AUTH SCREEN ========== -->
+    <div id="authScreen">
+        <div class="auth-container">
+            <div class="auth-header">
+                <h1>🤖 SudoAI</h1>
+                <p class="tagline">Your Intelligent AI Assistant</p>
+                <div class="language-selector">
+                    <select id="languageSelect" onchange="changeLanguage(this.value)" class="language-select">
+                        <option value="en">🇬🇧 English</option>
+                        <option value="no">🇳🇴 Norsk</option>
+                        <option value="es">🇪🇸 Español</option>
+                        <option value="fr">🇫🇷 Français</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="auth-tabs">
+                <button id="loginTab" class="auth-tab active" onclick="switchAuthTab('login')">Login</button>
+                <button id="signupTab" class="auth-tab" onclick="switchAuthTab('signup')">Sign Up</button>
+            </div>
+
+            <!-- Login Form -->
+            <div id="loginForm" class="auth-form">
+                <h2>Welcome Back</h2>
+                <p class="form-subtitle">Log in to continue your conversations</p>
+                <input type="email" id="loginEmail" placeholder="Email" required>
+                <input type="password" id="loginPassword" placeholder="Password" required>
+                <button class="primary-btn" onclick="login()">Log In</button>
+                <div id="loginMsg" class="msg"></div>
+            </div>
+
+            <!-- Signup Form -->
+            <div id="signupForm" class="auth-form hidden">
+                <h2>Create Account</h2>
+                <p class="form-subtitle">Start chatting with SudoAI today</p>
+                <input type="text" id="signupName" placeholder="Full Name" required>
+                <input type="email" id="signupEmail" placeholder="Email" required>
+                <input type="password" id="signupPassword" placeholder="Password (min 6 characters)" required>
+                <button class="primary-btn" onclick="signup()">Create Account</button>
+                <div id="signupMsg" class="msg"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== MAIN APP ========== -->
+    <div id="appScreen" class="hidden">
+
+        <!-- Sidebar -->
+        <div id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h2>🤖 SudoAI</h2>
+                <button class="icon-btn" onclick="toggleSidebar()">
+                    <span id="sidebarToggleIcon">←</span>
+                </button>
+            </div>
+
+            <button class="new-chat-btn" onclick="startNewChat()">
+                ➕ New Chat
+            </button>
+
+            <div class="chat-history-section">
+                <h3>Chat History</h3>
+                <div id="chatHistory" class="chat-history"></div>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">👤</div>
+                    <div class="user-details">
+                        <div id="userName" class="user-name">User</div>
+                        <div id="userEmail" class="user-email">email@example.com</div>
+                    </div>
+                </div>
+                <div class="user-plan-badge">
+                    <div id="planBadge" class="plan-badge free">FREE</div>
+                    <button class="upgrade-btn" id="upgradeBtn" onclick="openUpgradeModal()">
+                        ⭐ Upgrade to Pro
+                    </button>
+                </div>
+                <div class="usage-stats" id="usageStats">
+                    <div class="usage-item">
+                        <span>📝 Prompts: <span id="promptCount">0</span>/100</span>
+                    </div>
+                    <div class="usage-item">
+                        <span>🎨 Images: <span id="imageCount">0</span>/5</span>
+                    </div>
+                </div>
+                <div class="language-selector-app">
+                    <select onchange="changeLanguage(this.value)" class="language-select-app">
+                        <option value="en">🇬🇧 English</option>
+                        <option value="no">🇳🇴 Norsk</option>
+                        <option value="es">🇪🇸 Español</option>
+                        <option value="fr">🇫🇷 Français</option>
+                    </select>
+                </div>
+                <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+            </div>
+        </div>
+
+        <!-- Main Chat Area -->
+        <div id="mainContent" class="main-content">
+            <div class="chat-header">
+                <button class="icon-btn mobile-menu" onclick="toggleSidebar()">☰</button>
+                <h2 id="chatTitle">New Chat</h2>
+                <button class="icon-btn" onclick="deleteCurrentChat()">🗑️</button>
+            </div>
+
+            <div id="chatMessages" class="chat-messages">
+                <div class="welcome-message">
+                    <h1>👋 Hello! I'm SudoAI</h1>
+                    <p>I'm your intelligent AI assistant. I can help you with:</p>
+                    <div class="capabilities">
+                        <div class="capability-card">💬 General conversations</div>
+                        <div class="capability-card">💡 Answering questions</div>
+                        <div class="capability-card">📝 Writing assistance</div>
+                        <div class="capability-card">🧠 Problem solving</div>
+                        <div class="capability-card">💻 Coding help</div>
+                        <div class="capability-card">🎨 Creative ideas</div>
+                    </div>
+                    <p class="start-prompt">Ask me anything to get started!</p>
+                </div>
+            </div>
+
+            <div class="chat-input-container">
+                <div class="chat-input-wrapper">
+                    <input type="file" id="imageUpload" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+                    <button class="icon-btn-input" id="uploadImageBtn" onclick="handleUploadClick()" title="Upload image">
+                        📷
+                    </button>
+                    <button class="icon-btn-input" id="generateImageBtn" onclick="handleGenerateClick()" title="Generate image with AI">
+                        🎨
+                    </button>
+                    <textarea
+                        id="messageInput"
+                        placeholder="Type your message..."
+                        rows="1"
+                        onkeydown="handleKeyPress(event)"
+                    ></textarea>
+                    <button id="sendBtn" class="send-btn" onclick="sendMessage()">
+                        <span id="sendIcon">➤</span>
+                    </button>
+                </div>
+                <div id="imagePreview" class="image-preview hidden">
+                    <img id="previewImg" src="" alt="Preview">
+                    <button class="remove-image-btn" onclick="removeImagePreview()">✕</button>
+                </div>
+                <p class="input-hint">Press Enter to send • Shift+Enter for new line</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Image Generation Modal -->
+    <div id="imageGenModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🎨 Generate Image with AI</h2>
+                <button class="modal-close" onclick="closeImageGenerationModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-description">Describe the image you want to generate:</p>
+                <textarea id="imagePrompt" placeholder="e.g., A beautiful sunset over mountains, digital art style..." rows="4"></textarea>
+                <div class="modal-actions">
+                    <button class="secondary-btn" onclick="closeImageGenerationModal()">Cancel</button>
+                    <button class="primary-btn" onclick="generateImage()">Generate Image</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upgrade to Pro Modal -->
+    <div id="upgradeModal" class="modal hidden">
+        <div class="modal-content upgrade-modal">
+            <div class="modal-header">
+                <h2>⭐ Upgrade to SudoAI Pro</h2>
+                <button class="modal-close" onclick="closeUpgradeModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="pricing-comparison">
+                    <div class="pricing-card free-card">
+                        <div class="plan-header">
+                            <h3>FREE</h3>
+                            <div class="price">$0<span>/month</span></div>
+                        </div>
+                        <ul class="features-list">
+                            <li>❌ No image upload</li>
+                            <li>✅ 100 prompts/day</li>
+                            <li>✅ 5 AI images/day</li>
+                            <li>✅ Basic AI chat</li>
+                            <li>✅ Multi-language</li>
+                        </ul>
+                    </div>
+
+                    <div class="pricing-card pro-card">
+                        <div class="popular-badge">POPULAR</div>
+                        <div class="plan-header">
+                            <h3>PRO</h3>
+                            <div class="price">$9.99<span>/month</span></div>
+                        </div>
+                        <ul class="features-list">
+                            <li>✅ Upload images</li>
+                            <li>✅ Unlimited prompts</li>
+                            <li>✅ Unlimited AI images</li>
+                            <li>✅ Priority support</li>
+                            <li>✅ All features</li>
+                        </ul>
+                        <div id="paypal-button-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module" src="app.js"></script>
+</body>
+</html>
